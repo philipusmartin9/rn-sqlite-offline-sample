@@ -1,2 +1,2 @@
-# rn-sqlite-singleton-sample
-React Native Sqlite Sampe with Singleton Pattern
+# rn-sqlite-offline-sample
+React Native Sqlite - Offline Sample with Singleton Pattern
