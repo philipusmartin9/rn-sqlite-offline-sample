@@ -62,10 +62,10 @@ const App: () => Node = () => {
   const [isConnected, setIsConnected] = useState(true);
   const [inputText, setInputText] = useState('');
   const [people, setPeople] = useState([]);
-  const fetchFromAPI = async () => {
+  const fetchData = async () => {
+    // Untuk testing get Data, jika connected, akan memanggil ke API dulu sebelum menggunakan data dari SQLite
     peopleService.fetch(isConnected).then(result => {
       console.log('result fetch:', result);
-      // if(!result.error) setPeople(result);
       if(!result.error) setPeople(result.datas);
     }).catch(error => {
       console.error(error);
@@ -79,19 +79,11 @@ const App: () => Node = () => {
     };
 
     console.log('test update name!');
-
+    // Untuk testing update data, khusus yang hanya dari API (isSubmitting = false), supaya bisa cek apakah upsert function berjalan dengan baik
     peopleService.updateToSqlite(dataToUpdate).then(result => {
       console.log('hasil updatenya:', result);
-      Alert.alert(
-        "Message",
-        "Sqlite Update Successful!"
-      );
     }).catch(error => {
       console.error(error);
-      Alert.alert(
-        "Error",
-        "Sqlite Update Error:" + error
-      );
     });
   }
 
@@ -106,18 +98,12 @@ const App: () => Node = () => {
       age: 17,
       isSubmitting: 1
     };
+
+    // Untuk menambah data baru ke sqlite
     peopleService.insertToSqlite(dataToInsert).then(result => {
       console.log('hasil insertnya:', result);
-      Alert.alert(
-        "Message",
-        "Sqlite Insert Successful!"
-      );
     }).catch(error => {
       console.error(error);
-      Alert.alert(
-        "Error",
-        "Sqlite Insert Error:" + error
-      );
     });
   }
 
@@ -126,20 +112,22 @@ const App: () => Node = () => {
   }
 
   const getConnection = () => {
+    // Bisa digunakan untuk mengambil koneksi data terbaru dengan trigger manual
     NetInfo.fetch().then(state => {
-      //console.log("Connection type", state.type);
       console.log("Is connected?", state.isConnected);
       setIsConnected(state.isConnected);
     });
   };
 
   useEffect(() => {
+    // untuk mendapatkan status koneksi internet
     const unsubscribe = NetInfo.addEventListener(state => {
       console.log("Is connected?", state.isInternetReachable);
       setIsConnected(state.isInternetReachable);
     });
 
-    fetchFromAPI();
+    // untuk mendapatkan data orang
+    fetchData();
 
     return () => {
       unsubscribe();
@@ -199,7 +187,7 @@ const App: () => Node = () => {
                   flex:1
                 }}
                 color='#228b22'
-                onPress={() => fetchFromAPI()}
+                onPress={() => fetchData()}
               />
               <Button
                 title="Update All People with isSubmitting = false"
