@@ -19,7 +19,8 @@ import {
   Button,
   useColorScheme,
   View,
-  FlatList
+  FlatList,
+  Alert
 } from 'react-native';
 import People from "./src/models/People";
 import PeopleService from "./src/services/People";
@@ -59,14 +60,69 @@ const peopleService = new PeopleService();
 const App: () => Node = () => {
   const isDarkMode = useColorScheme() === 'dark';
   const [isConnected, setIsConnected] = useState(true);
+  const [inputText, setInputText] = useState('');
   const [people, setPeople] = useState([]);
   const fetchFromAPI = async () => {
-    peopleService.fetchFromAPI().then(result => {
-      console.log('array 1:', result);
-      if(!result.error) setPeople(result);
+    peopleService.fetch(isConnected).then(result => {
+      console.log('result fetch:', result);
+      // if(!result.error) setPeople(result);
+      if(!result.error) setPeople(result.datas);
     }).catch(error => {
       console.error(error);
     });
+  }
+
+  const updateNameToSqlite = async () => {
+    let dataToUpdate = {
+      isSubmitting: false,
+      name: "Need Update from API"
+    };
+
+    console.log('test update name!');
+
+    peopleService.updateToSqlite(dataToUpdate).then(result => {
+      console.log('hasil updatenya:', result);
+      Alert.alert(
+        "Message",
+        "Sqlite Update Successful!"
+      );
+    }).catch(error => {
+      console.error(error);
+      Alert.alert(
+        "Error",
+        "Sqlite Update Error:" + error
+      );
+    });
+  }
+
+  const insertToSqlite = async () => {
+    let dataToInsert = {
+      _id: '1',
+      name: inputText,
+      gender: 'Male',
+      company: 'Upscale',
+      email: 'dummy@gmail.com',
+      phone: '08123456789',
+      age: 17,
+      isSubmitting: 1
+    };
+    peopleService.insertToSqlite(dataToInsert).then(result => {
+      console.log('hasil insertnya:', result);
+      Alert.alert(
+        "Message",
+        "Sqlite Insert Successful!"
+      );
+    }).catch(error => {
+      console.error(error);
+      Alert.alert(
+        "Error",
+        "Sqlite Insert Error:" + error
+      );
+    });
+  }
+
+  const onChangeInputText = (text) => {
+    setInputText(text);
   }
 
   const getConnection = () => {
@@ -127,15 +183,15 @@ const App: () => Node = () => {
           <Section title="OFLN-02">
             <ScrollView style={{flexDirection: "row"}}>
               <TextInput
-                //style={styles.input}
-                //onChangeText={onChangeInputText}
-                //value={inputText}
+                style={styles.input}
+                onChangeText={onChangeInputText}
+                value={inputText}
                 placeholder="Insert Name"
               />
               <FlatList
                 data={people}
                 renderItem={renderItem}
-                keyExtractor={item => item._id}
+                keyExtractor={item => item.id}
               />
               <Button
                 title="Refresh from API"
@@ -146,11 +202,18 @@ const App: () => Node = () => {
                 onPress={() => fetchFromAPI()}
               />
               <Button
+                title="Update All People with isSubmitting = false"
+                style={{
+                  flex:1
+                }}
+                onPress={() => updateNameToSqlite()}
+              />
+              <Button
                 title="Insert person"
                 style={{
                   flex:1
                 }}
-                onPress={() => {}}
+                onPress={() => insertToSqlite()}
               />
             </ScrollView>
           </Section>
